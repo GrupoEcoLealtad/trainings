@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Big O Notation y Buenas Prácticas en Queries</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --border: #30363d;
+      --text: #e6edf3;
+      --text-muted: #8b949e;
+      --accent: #58a6ff;
+      --accent-soft: rgba(88, 166, 255, 0.15);
+      --good: #3fb950;
+      --bad: #f85149;
+      --warning: #d29922;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    .slides {
+      width: 100vw;
+      height: 100vh;
+      position: relative;
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 3rem 4rem;
+      animation: fadeIn 0.35s ease;
+    }
+
+    .slide.active {
+      display: flex;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .slide h1 {
+      font-size: 2.25rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      text-align: center;
+      color: var(--text);
+    }
+
+    .slide h2 {
+      font-size: 1.5rem;
+      font-weight: 500;
+      margin-bottom: 1.5rem;
+      color: var(--accent);
+    }
+
+    .slide p, .slide li {
+      font-size: 1.1rem;
+      line-height: 1.65;
+      color: var(--text-muted);
+      max-width: 720px;
+      margin-bottom: 0.75rem;
+    }
+
+    .slide ul {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    .slide ul li::before {
+      content: "→";
+      color: var(--accent);
+      margin-right: 0.5rem;
+    }
+
+    .code-block {
+      font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+      font-size: 0.9rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      margin: 1rem 0;
+      text-align: left;
+      width: 100%;
+      max-width: 640px;
+      overflow-x: auto;
+    }
+
+    .code-block.good { border-left: 4px solid var(--good); }
+    .code-block.bad { border-left: 4px solid var(--bad); }
+
+    .big-o-badge {
+      display: inline-block;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-weight: 600;
+      font-size: 1.5rem;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      margin: 0.5rem;
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      width: 100%;
+      max-width: 900px;
+      margin-top: 1rem;
+    }
+
+    .two-col .col h3 {
+      font-size: 1rem;
+      margin-bottom: 0.5rem;
+      color: var(--good);
+    }
+
+    .two-col .col.bad h3 { color: var(--bad); }
+
+    .comparison-title {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: var(--text);
+    }
+
+    /* Gráficos y diagramas */
+    .diagram {
+      margin: 1.5rem 0;
+      padding: 1rem;
+      background: var(--surface);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      max-width: 560px;
+    }
+
+    .diagram-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+      color: var(--text);
+    }
+
+    .rows-visual {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      justify-content: center;
+    }
+
+    .row-box {
+      width: 36px;
+      height: 28px;
+      background: var(--border);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+
+    .row-box.highlight {
+      background: var(--accent);
+      color: var(--bg);
+    }
+
+    .row-box.target {
+      background: var(--good);
+      color: var(--bg);
+      outline: 2px solid var(--text);
+    }
+
+    .analogy {
+      background: var(--accent-soft);
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+      margin: 1rem 0;
+      border-left: 4px solid var(--accent);
+      max-width: 520px;
+      font-size: 1.05rem;
+    }
+
+    .scale-bar {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      margin: 1rem 0;
+      justify-content: center;
+      height: 80px;
+    }
+
+    .scale-bar .bar {
+      width: 32px;
+      background: var(--accent);
+      border-radius: 4px 4px 0 0;
+      min-height: 8px;
+    }
+
+    .scale-bar .bar.good { background: var(--good); }
+    .scale-bar .bar.bad { background: var(--bad); }
+
+    .scale-labels {
+      display: flex;
+      gap: 32px;
+      justify-content: center;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+    }
+
+    .two-visuals {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      max-width: 700px;
+      margin-top: 1rem;
+    }
+
+    .two-visuals .visual-box {
+      padding: 1rem;
+      border-radius: 10px;
+      text-align: center;
+    }
+
+    .two-visuals .visual-box.bad {
+      background: rgba(248, 81, 73, 0.12);
+      border: 1px solid var(--bad);
+    }
+
+    .two-visuals .visual-box.good {
+      background: rgba(63, 185, 80, 0.12);
+      border: 1px solid var(--good);
+    }
+
+    .two-visuals .visual-box .v-title {
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+      font-size: 1rem;
+    }
+
+    .two-visuals .visual-box.bad .v-title { color: var(--bad); }
+    .two-visuals .visual-box.good .v-title { color: var(--good); }
+
+    .triangle-diagram {
+      position: relative;
+      width: 460px;
+      height: 420px;
+      margin: 1rem auto 1.5rem;
+    }
+
+    .triangle-diagram svg.triangle-lines {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .triangle-diagram .triangle-line {
+      stroke: var(--accent);
+      stroke-width: 2;
+      stroke-dasharray: 6 4;
+      fill: none;
+      opacity: 0.7;
+    }
+
+    .triangle-diagram .elem-card {
+      position: absolute;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem 1.25rem;
+      width: 140px;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    .triangle-diagram .elem-card.top {
+      left: 50%;
+      top: 10px;
+      transform: translate(-50%, 0);
+    }
+
+    .triangle-diagram .elem-card.bottom-left {
+      left: 40px;
+      bottom: 40px;
+    }
+
+    .triangle-diagram .elem-card.bottom-right {
+      right: 40px;
+      bottom: 40px;
+    }
+
+    .elem-icon {
+      width: 48px;
+      height: 48px;
+      margin: 0 auto 0.5rem;
+      display: block;
+      color: var(--accent);
+    }
+
+    .elem-icon svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .triangle-diagram .elem-card .elem-name {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 0.25rem;
+    }
+
+    .triangle-diagram .elem-card .elem-desc {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      line-height: 1.35;
+    }
+
+    .triangle-caption {
+      text-align: center;
+      font-size: 0.9rem;
+      color: var(--warning);
+      margin-top: 0.5rem;
+      font-weight: 500;
+    }
+
+    .sql-section {
+      margin-top: 1rem;
+      width: 100%;
+      max-width: 640px;
+    }
+
+    .sql-section .sql-label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 0.35rem;
+      color: var(--text);
+    }
+
+    @media (max-width: 768px) {
+      .slide { padding: 2rem 1.5rem; }
+      .slide h1 { font-size: 1.75rem; }
+      .two-col { grid-template-columns: 1fr; }
+      .two-visuals { grid-template-columns: 1fr; }
+      .triangle-diagram { width: 360px; height: 340px; }
+      .triangle-diagram .elem-card { width: 120px; padding: 0.75rem 1rem; }
+      .triangle-diagram .elem-card.top { top: 8px; }
+      .triangle-diagram .elem-card.bottom-left { left: 20px; bottom: 20px; }
+      .triangle-diagram .elem-card.bottom-right { right: 20px; bottom: 20px; }
+      .triangle-diagram .elem-card .elem-desc { font-size: 0.7rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="slides">
+    <!-- Portada -->
+    <section class="slide active" data-slide="0">
+      <h1>Big O Notation</h1>
+      <p style="font-size: 1.25rem; color: var(--text); margin-bottom: 0.5rem;">y buenas prácticas en queries a bases de datos</p>
+      <p style="margin-top: 1rem;">Navega con ← →</p>
+    </section>
+
+    <!-- Tres elementos de una computadora -->
+    <section class="slide" data-slide="1">
+      <h2>Los tres elementos fundamentales de una computadora</h2>
+      <p style="margin-bottom: 0.5rem;">Toda consulta a una base de datos usa estos recursos. <strong>Sin uno no puede funcionar el otro.</strong></p>
+      <div class="triangle-diagram">
+        <svg class="triangle-lines" viewBox="0 0 460 420" preserveAspectRatio="none">
+          <path class="triangle-line" d="M 230 75 L 110 368 L 350 368 Z" />
+        </svg>
+        <div class="elem-card top">
+          <span class="elem-icon" aria-hidden="true">
+            <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="12" y="12" width="40" height="40" rx="4" stroke="currentColor" stroke-width="2" fill="var(--surface)"/>
+              <rect x="18" y="18" width="8" height="8" rx="1" fill="var(--accent)" opacity="0.8"/>
+              <rect x="38" y="18" width="8" height="8" rx="1" fill="var(--accent)" opacity="0.8"/>
+              <rect x="18" y="38" width="8" height="8" rx="1" fill="var(--accent)" opacity="0.8"/>
+              <rect x="38" y="38" width="8" height="8" rx="1" fill="var(--accent)" opacity="0.8"/>
+              <path d="M 28 32 L 36 32 M 32 28 L 32 36" stroke="var(--accent)" stroke-width="1.5"/>
+            </svg>
+          </span>
+          <div class="elem-name">CPU</div>
+          <div class="elem-desc">Realiza los cálculos. Ejecuta la consulta (comparar, ordenar, JOINs).</div>
+        </div>
+        <div class="elem-card bottom-left">
+          <span class="elem-icon" aria-hidden="true">
+            <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="14" y="10" width="36" height="44" rx="3" stroke="currentColor" stroke-width="2" fill="var(--surface)"/>
+              <rect x="20" y="18" width="24" height="4" rx="1" fill="var(--accent)" opacity="0.9"/>
+              <rect x="20" y="26" width="24" height="4" rx="1" fill="var(--accent)" opacity="0.7"/>
+              <rect x="20" y="34" width="24" height="4" rx="1" fill="var(--accent)" opacity="0.5"/>
+              <rect x="20" y="42" width="24" height="4" rx="1" fill="var(--accent)" opacity="0.3"/>
+            </svg>
+          </span>
+          <div class="elem-name">Memoria (RAM)</div>
+          <div class="elem-desc">Almacenamiento temporal. Datos en proceso. Rápida; se borra al apagar.</div>
+        </div>
+        <div class="elem-card bottom-right">
+          <span class="elem-icon" aria-hidden="true">
+            <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <ellipse cx="32" cy="20" rx="20" ry="6" stroke="currentColor" stroke-width="2" fill="var(--surface)"/>
+              <path d="M 12 20 L 12 44 Q 32 52 52 44 L 52 20" stroke="currentColor" stroke-width="2" fill="var(--surface)"/>
+              <ellipse cx="32" cy="44" rx="20" ry="6" stroke="currentColor" stroke-width="2" fill="var(--surface)"/>
+              <ellipse cx="32" cy="20" rx="12" ry="4" fill="var(--accent)" opacity="0.6"/>
+            </svg>
+          </span>
+          <div class="elem-name">Disco</div>
+          <div class="elem-desc">Almacenamiento persistente. Tablas e índices. Más lento; los datos permanecen.</div>
+        </div>
+      </div>
+      <p class="triangle-caption">Sin uno no pueden funcionar los otros</p>
+      <p style="font-size: 0.9rem; color: var(--text-muted); margin-top: 0.75rem; max-width: 520px;">Una consulta ineficiente usa más CPU, más memoria y más lecturas de disco. Una consulta bien escrita reduce el uso de los tres.</p>
+    </section>
+
+    <!-- Qué es Big O -->
+    <section class="slide" data-slide="1">
+      <h2>¿Qué es Big O?</h2>
+      <p>Big O es una forma de decir <strong>cuánto tarda una consulta</strong> cuando la tabla tiene más o menos filas.</p>
+      <p><strong>n</strong> = número de filas (registros) en la tabla. Cuanto más grande sea n, más datos tiene que revisar la base de datos.</p>
+      <div class="analogy">
+        Pensemos en una biblioteca: si hay 10 libros, encontrar uno es rápido. Si hay 1.000.000 de libros, depende <em>cómo</em> busques: ir directo a la estantería correcta no es lo mismo que mirar libro por libro.
+      </div>
+    </section>
+
+    <!-- O(1) -->
+    <section class="slide" data-slide="2">
+      <h2>O(1) — Constante</h2>
+      <p>La consulta tarda <strong>siempre lo mismo</strong>, tenga la tabla 100 filas o 10 millones. No importa el tamaño.</p>
+      <span class="big-o-badge">O(1)</span>
+      <div class="diagram">
+        <div class="diagram-title">En la base de datos: buscar por clave única (ej. ID o índice)</div>
+        <div class="rows-visual">
+          <span class="row-box">1</span><span class="row-box">2</span><span class="row-box">3</span><span class="row-box">4</span><span class="row-box">5</span><span class="row-box">6</span><span class="row-box">7</span><span class="row-box">8</span><span class="row-box">9</span><span class="row-box">10</span>
+        </div>
+        <p style="text-align:center; margin-top: 0.75rem; font-size: 0.95rem;">↓ La base de datos va <strong>directo</strong> a la fila (ej. la 5). No recorre las demás.</p>
+      </div>
+      <div class="analogy">
+        Como un archivador con cajones etiquetados: buscas “García” y vas directo al cajón G. Da igual cuántos cajones haya.
+      </div>
+    </section>
+
+    <!-- O(log n) -->
+    <section class="slide" data-slide="3">
+      <h2>O(log n) — Logarítmico</h2>
+      <p>Cuando la tabla crece, el tiempo crece <strong>muy poco</strong>. La base de datos no recorre todas las filas: usa un índice (como un índice de libro).</p>
+      <span class="big-o-badge">O(log n)</span>
+      <div class="diagram">
+        <div class="diagram-title">Búsqueda con índice: “ir a la mitad, luego a la mitad de esa mitad…”</div>
+        <div class="rows-visual">
+          <span class="row-box">1</span><span class="row-box">2</span><span class="row-box highlight">3</span><span class="row-box">4</span><span class="row-box">5</span><span class="row-box">6</span><span class="row-box">7</span><span class="row-box">8</span><span class="row-box">9</span><span class="row-box">10</span>
+        </div>
+        <p style="text-align:center; margin-top: 0.75rem; font-size: 0.95rem;">Solo se “abren” pocas puertas (pasos). No se lee fila por fila.</p>
+      </div>
+      <div class="analogy">
+        Como buscar un nombre en la guía telefónica: abres por la mitad, ves si vas antes o después, y repites con la mitad que toque. En muy pocos pasos llegas.
+      </div>
+    </section>
+
+    <!-- O(n) — Lineal -->
+    <section class="slide" data-slide="4">
+      <h2>O(n) — Lineal</h2>
+      <p>El tiempo es <strong>proporcional al número de filas</strong>: el doble de filas, aproximadamente el doble de tiempo. La base de datos recorre la tabla de arriba abajo.</p>
+      <span class="big-o-badge">O(n)</span>
+      <div class="diagram">
+        <div class="diagram-title">Sin índice útil: la base de datos recorre todas las filas</div>
+        <div class="rows-visual">
+          <span class="row-box highlight">1</span><span class="row-box highlight">2</span><span class="row-box highlight">3</span><span class="row-box highlight">4</span><span class="row-box highlight">5</span><span class="row-box highlight">6</span><span class="row-box highlight">7</span><span class="row-box highlight">8</span><span class="row-box highlight">9</span><span class="row-box highlight">10</span>
+        </div>
+        <p style="text-align:center; margin-top: 0.75rem; font-size: 0.95rem;">Todas las filas se revisan (table scan). Con 1 millón de filas, revisa 1 millón.</p>
+      </div>
+      <div class="analogy">
+        Como leer una lista de nombres de arriba abajo hasta encontrar el que buscas. Lista larga = más tiempo.
+      </div>
+    </section>
+
+    <!-- O(n²) -->
+    <section class="slide" data-slide="5">
+      <h2>O(n²) — Cuadrático</h2>
+      <p>El tiempo crece <strong>mucho</strong> cuando hay muchas filas: por cada fila de una tabla, se recorre otra tabla entera. Muy lento en tablas grandes.</p>
+      <span class="big-o-badge">O(n²)</span>
+      <div class="diagram">
+        <div class="diagram-title">Ejemplo: para cada pedido, buscar el cliente recorriendo toda la tabla de clientes (y sin índice)</div>
+        <div class="rows-visual">
+          <span class="row-box highlight">1</span><span class="row-box highlight">2</span><span class="row-box highlight">3</span><span class="row-box">…</span>
+        </div>
+        <p style="text-align:center; margin-top: 0.75rem; font-size: 0.95rem;">Pedido 1 → revisar todos los clientes. Pedido 2 → otra vez todos. Pedido 3 → otra vez…</p>
+      </div>
+      <div class="analogy">
+        Como si por cada alumno de una clase tuvieras que recorrer toda la lista del colegio para encontrar su curso. Con muchos alumnos, el tiempo se dispara.
+      </div>
+    </section>
+
+    <!-- Resumen Big O -->
+    <section class="slide" data-slide="6">
+      <h2>Resumen: de mejor a peor</h2>
+      <div class="scale-bar">
+        <div class="bar good" style="height: 20px;" title="O(1)"></div>
+        <div class="bar good" style="height: 28px;" title="O(log n)"></div>
+        <div class="bar" style="height: 50px;" title="O(n)"></div>
+        <div class="bar bad" style="height: 80px;" title="O(n²)"></div>
+      </div>
+      <div class="scale-labels">
+        <span>O(1) — directo</span>
+        <span>O(log n) — índice</span>
+        <span>O(n) — recorre todo</span>
+        <span>O(n²) — evitar</span>
+      </div>
+      <ul style="margin-top: 1.5rem;">
+        <li><strong>O(1)</strong> y <strong>O(log n)</strong> son los que queremos para búsquedas (clave o índice).</li>
+        <li><strong>O(n)</strong> puede ser aceptable si la tabla no es enorme.</li>
+        <li><strong>O(n²)</strong> hay que evitarlo en tablas grandes.</li>
+      </ul>
+      <p style="margin-top: 1rem;">Los <strong>índices</strong> en la base de datos hacen que una búsqueda pase de “recorrer todo” a “ir directo” o “muy pocos pasos”.</p>
+    </section>
+
+    <!-- Título sección DB -->
+    <section class="slide" data-slide="7">
+      <h1>Buenas prácticas en consultas</h1>
+      <p>Pequeños cambios en cómo hacemos las consultas que evitan que la base de datos trabaje de más y mejoran mucho el rendimiento.</p>
+    </section>
+
+    <!-- Índices -->
+    <section class="slide" data-slide="8">
+      <h2>1. Usar índices en las columnas por las que filtras o haces JOIN</h2>
+      <p>Sin índice, la base de datos recorre <strong>todas</strong> las filas. Con índice, va directo o en muy pocos pasos.</p>
+      <div class="two-visuals">
+        <div class="visual-box bad">
+          <div class="v-title">❌ Sin índice</div>
+          <div class="rows-visual" style="justify-content: center;">
+            <span class="row-box highlight">1</span><span class="row-box highlight">2</span><span class="row-box highlight">3</span><span class="row-box highlight">4</span><span class="row-box highlight">5</span><span class="row-box highlight">6</span><span class="row-box highlight">7</span><span class="row-box highlight">8</span><span class="row-box highlight">9</span><span class="row-box highlight">10</span>
+          </div>
+          <p style="font-size: 0.9rem; margin-top: 0.5rem;">Recorre todas las filas (table scan). Lento.</p>
+        </div>
+        <div class="visual-box good">
+          <div class="v-title">✅ Con índice en la columna</div>
+          <div class="rows-visual" style="justify-content: center;">
+            <span class="row-box">1</span><span class="row-box">2</span><span class="row-box">3</span><span class="row-box">4</span><span class="row-box target">5</span><span class="row-box">6</span><span class="row-box">7</span><span class="row-box">8</span><span class="row-box">9</span><span class="row-box">10</span>
+          </div>
+          <p style="font-size: 0.9rem; margin-top: 0.5rem;">Va directo a la fila que cumple la condición. Rápido.</p>
+        </div>
+      </div>
+      <p style="margin-top: 1rem; font-size: 0.95rem;">Crear índice en columnas que usas en WHERE y en JOIN hace que esas consultas pasen de O(n) a O(log n) o O(1).</p>
+      <div class="sql-section">
+        <div class="sql-label">❌ Sin índice → table scan</div>
+        <div class="code-block bad">SELECT * FROM usuarios WHERE email = 'maria@ejemplo.com';</div>
+        <div class="sql-label" style="margin-top: 0.75rem;">✅ Crear índice y misma consulta</div>
+        <div class="code-block good">CREATE INDEX idx_usuarios_email ON usuarios(email);
+-- La misma SELECT ahora usa el índice (seek), no recorre toda la tabla</div>
+      </div>
+    </section>
+
+    <!-- SELECT específico -->
+    <section class="slide" data-slide="9">
+      <h2>2. Pedir solo las columnas que necesitas</h2>
+      <p>Si pides “todas las columnas” (SELECT *), la base de datos lee y envía todo. Si solo necesitas nombre y precio, es mejor pedir solo esas: menos trabajo y menos datos por la red.</p>
+      <div class="two-visuals">
+        <div class="visual-box bad">
+          <div class="v-title">❌ Pedir todo</div>
+          <div class="diagram" style="margin: 0; padding: 0.5rem;">
+            <div class="rows-visual">
+              <span class="row-box highlight">id</span><span class="row-box highlight">nombre</span><span class="row-box highlight">precio</span><span class="row-box highlight">desc</span><span class="row-box highlight">stock</span><span class="row-box highlight">…</span>
+            </div>
+          </div>
+          <p style="font-size: 0.9rem; margin-top: 0.5rem;">Lee y envía todas las columnas. Más lento.</p>
+        </div>
+        <div class="visual-box good">
+          <div class="v-title">✅ Pedir solo lo necesario</div>
+          <div class="diagram" style="margin: 0; padding: 0.5rem;">
+            <div class="rows-visual">
+              <span class="row-box target">id</span><span class="row-box target">nombre</span><span class="row-box target">precio</span><span class="row-box">desc</span><span class="row-box">stock</span><span class="row-box">…</span>
+            </div>
+          </div>
+          <p style="font-size: 0.9rem; margin-top: 0.5rem;">Solo lee y envía id, nombre, precio. Más rápido.</p>
+        </div>
+      </div>
+      <div class="sql-section">
+        <div class="sql-label">❌ Evitar</div>
+        <div class="code-block bad">SELECT * FROM productos WHERE categoria_id = 5;</div>
+        <div class="sql-label" style="margin-top: 0.75rem;">✅ Mejor: solo las columnas necesarias</div>
+        <div class="code-block good">SELECT id, nombre, precio
+FROM productos
+WHERE categoria_id = 5;</div>
+      </div>
+    </section>
+
+    <!-- LIMIT y paginación -->
+    <section class="slide" data-slide="10">
+      <h2>3. Limitar cuántas filas devuelves (LIMIT / TOP)</h2>
+      <p>Si solo necesitas los 10 pedidos más recientes, no tiene sentido que la consulta traiga 2 millones de filas. Limitar resultados ahorra tiempo y memoria.</p>
+      <div class="two-visuals">
+        <div class="visual-box bad">
+          <div class="v-title">❌ Sin límite</div>
+          <div class="rows-visual" style="justify-content: center;">
+            <span class="row-box highlight">1</span><span class="row-box highlight">2</span><span class="row-box highlight">3</span><span class="row-box highlight">…</span><span class="row-box highlight">1M</span>
+          </div>
+          <p style="font-size: 0.9rem; margin-top: 0.5rem;">Devuelve todas las filas. Muy lento si la tabla es grande.</p>
+        </div>
+        <div class="visual-box good">
+          <div class="v-title">✅ Con límite (ej. 10)</div>
+          <div class="rows-visual">
+            <span class="row-box target">1</span><span class="row-box target">2</span><span class="row-box target">3</span><span class="row-box target">4</span><span class="row-box target">5</span><span class="row-box target">6</span><span class="row-box target">7</span><span class="row-box target">8</span><span class="row-box target">9</span><span class="row-box target">10</span>
+          </div>
+          <p style="font-size: 0.9rem; margin-top: 0.5rem;">Solo devuelve las que necesitas. Rápido.</p>
+        </div>
+      </div>
+      <p style="margin-top: 1rem; font-size: 0.95rem;">Usar LIMIT (o TOP, según el motor) y paginación cuando solo quieras una parte de los resultados.</p>
+      <div class="sql-section">
+        <div class="sql-label">❌ Sin límite (devuelve todo)</div>
+        <div class="code-block bad">SELECT id, titulo, creado_en FROM pedidos ORDER BY creado_en DESC;</div>
+        <div class="sql-label" style="margin-top: 0.75rem;">✅ Con límite (solo lo necesario)</div>
+        <div class="code-block good">-- Solo los 10 más recientes
+SELECT id, titulo, creado_en
+FROM pedidos
+ORDER BY creado_en DESC
+LIMIT 10;
+
+-- Paginación (ej. página 3, 20 por página)
+-- SQL Server: OFFSET 40 ROWS FETCH NEXT 20 ROWS ONLY
+-- MySQL/PostgreSQL: LIMIT 20 OFFSET 40</div>
+      </div>
+    </section>
+
+    <!-- Evitar N+1 -->
+    <section class="slide" data-slide="11">
+      <h2>4. Evitar muchas consultas cuando una basta (problema N+1)</h2>
+      <p>A veces se hace: 1 consulta para obtener una lista (ej. 100 pedidos) y luego <strong>otra consulta por cada fila</strong> (por cada pedido, buscar el cliente). Eso son 1 + 100 = 101 consultas. Mejor: una sola consulta que una pedidos con clientes (JOIN).</p>
+      <div class="two-visuals">
+        <div class="visual-box bad">
+          <div class="v-title">❌ Muchas consultas</div>
+          <p style="font-size: 0.95rem;">Consulta 1 → 100 pedidos</p>
+          <p style="font-size: 0.95rem;">Consulta 2 → cliente del pedido 1</p>
+          <p style="font-size: 0.95rem;">Consulta 3 → cliente del pedido 2</p>
+          <p style="font-size: 0.95rem;">… (100 veces más)</p>
+          <p style="font-size: 0.9rem; margin-top: 0.5rem; font-weight: 600;">Total: 101 consultas. Muy lento.</p>
+        </div>
+        <div class="visual-box good">
+          <div class="v-title">✅ Una consulta con JOIN</div>
+          <p style="font-size: 0.95rem;">Una sola consulta que devuelve pedidos y datos del cliente juntos (JOIN entre pedidos y clientes).</p>
+          <p style="font-size: 0.9rem; margin-top: 0.5rem; font-weight: 600;">Total: 1 consulta. Rápido.</p>
+        </div>
+      </div>
+      <div class="sql-section">
+        <div class="sql-label">❌ N+1: una consulta para la lista + una por cada fila</div>
+        <div class="code-block bad">-- Consulta 1: obtener pedidos
+SELECT id, id_cliente, total FROM pedidos;
+-- Luego, por cada fila, otra consulta: SELECT * FROM clientes WHERE id = ?</div>
+        <div class="sql-label" style="margin-top: 0.75rem;">✅ Una sola consulta con JOIN</div>
+        <div class="code-block good">SELECT p.id, p.total, c.nombre AS cliente
+FROM pedidos p
+INNER JOIN clientes c ON c.id = p.id_cliente;</div>
+      </div>
+    </section>
+
+    <!-- Funciones en columnas -->
+    <section class="slide" data-slide="12">
+      <h2>5. No usar funciones sobre la columna en el WHERE (si tiene índice)</h2>
+      <p>Si en el filtro usas una función sobre la columna (por ejemplo YEAR(fecha) o LOWER(email)), la base de datos suele <strong>no poder usar el índice</strong> y acaba recorriendo toda la tabla.</p>
+      <div class="two-visuals">
+        <div class="visual-box bad">
+          <div class="v-title">❌ Función sobre la columna</div>
+          <p style="font-size: 0.95rem;">“Dame registros donde el <strong>año</strong> de la fecha sea 2025.”</p>
+          <p style="font-size: 0.9rem; margin-top: 0.5rem;">El índice sobre <em>fecha</em> no sirve porque se busca por “año”, no por fecha exacta. → Recorre todo.</p>
+        </div>
+        <div class="visual-box good">
+          <div class="v-title">✅ Rango de valores directo</div>
+          <p style="font-size: 0.95rem;">“Dame registros donde fecha esté entre 2025-01-01 y 2025-12-31.”</p>
+          <p style="font-size: 0.9rem; margin-top: 0.5rem;">La columna se usa tal cual. El índice sí se puede usar. → Rápido.</p>
+        </div>
+      </div>
+      <div class="sql-section">
+        <div class="sql-label">❌ Función sobre la columna → el índice no se usa</div>
+        <div class="code-block bad">SELECT * FROM eventos WHERE YEAR(fecha) = 2025;
+-- O: WHERE LOWER(email) = 'usuario@ejemplo.com'</div>
+        <div class="sql-label" style="margin-top: 0.75rem;">✅ Comparar con rango o valor directo</div>
+        <div class="code-block good">SELECT * FROM eventos
+WHERE fecha >= '2025-01-01' AND fecha < '2026-01-01';</div>
+      </div>
+    </section>
+
+    <!-- Nube y costos -->
+    <section class="slide" data-slide="14">
+      <h2>¿Por qué importa en la nube? Costos</h2>
+      <p>En computación en la nube (AWS, Azure, GCP, etc.) se paga por <strong>uso</strong>: CPU, memoria, disco y transferencia de datos. Las consultas ineficientes consumen más de todo eso.</p>
+      <ul style="margin-top: 1rem;">
+        <li><strong>Más CPU</strong> → más tiempo de proceso factuado o necesidad de instancias más grandes.</li>
+        <li><strong>Más memoria</strong> → bases de datos con más RAM cuestan más.</li>
+        <li><strong>Más lecturas de disco</strong> → en servicios como Amazon RDS o Aurora, I/O de disco se cobra aparte.</li>
+        <li><strong>Más datos transferidos</strong> → SELECT * o sin LIMIT envían más bytes; la salida de datos también se factura en muchos proveedores.</li>
+      </ul>
+      <div class="analogy" style="margin-top: 1.5rem;">
+        Escribir consultas eficientes (índices, columnas necesarias, límites, JOIN en lugar de N+1) reduce el uso de CPU, memoria, disco y red. Eso se traduce directamente en <strong>menor costo</strong> y mejor tiempo de respuesta en entornos cloud.
+      </div>
+    </section>
+
+    <!-- Cierre -->
+    <section class="slide" data-slide="13">
+      <h1>Resumen</h1>
+      <ul>
+        <li><strong>Big O:</strong> Lo ideal es acercarse a O(1) u O(log n) (ir directo o con índice). Evitar O(n²) en tablas grandes.</li>
+        <li><strong>Índices</strong> en las columnas por las que filtras o haces JOIN.</li>
+        <li>Pedir <strong>solo las columnas</strong> que necesitas, no todas.</li>
+        <li><strong>Limitar</strong> resultados (LIMIT/TOP) cuando no necesites todas las filas.</li>
+        <li>Evitar <strong>muchas consultas</strong> (N+1): una consulta con JOIN en lugar de una por fila.</li>
+        <li>No usar <strong>funciones</strong> sobre la columna en el WHERE si quieres que se use el índice.</li>
+      </ul>
+    </section>
+  </div>
+
+  <script>
+    (function () {
+      var slides = document.querySelectorAll('.slide');
+      var total = slides.length;
+      var current = 0;
+
+      function show(i) {
+        if (i < 0) i = 0;
+        if (i >= total) i = total - 1;
+        current = i;
+        slides.forEach(function (s, j) {
+          s.classList.toggle('active', j === current);
+        });
+      }
+
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'ArrowLeft') show(current - 1);
+        if (e.key === 'ArrowRight') show(current + 1);
+      });
+
+      show(0);
+    })();
+  </script>
+</body>
+</html>
