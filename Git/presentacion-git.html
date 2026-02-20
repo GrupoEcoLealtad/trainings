@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Git — Presentación</title>
+  <style>
+    * { box-sizing: border-box; }
+    :root {
+      --bg: #0d1117;
+      --card: #161b22;
+      --text: #e6edf3;
+      --muted: #8b949e;
+      --accent: #58a6ff;
+      --green: #3fb950;
+      --orange: #d29922;
+    }
+    body {
+      margin: 0;
+      font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow: hidden;
+    }
+    .slides {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+    }
+    .slide {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 3rem;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.35s ease, visibility 0.35s ease;
+    }
+    .slide.active {
+      opacity: 1;
+      visibility: visible;
+      z-index: 1;
+    }
+    .slide h1 {
+      font-size: clamp(1.8rem, 4vw, 3rem);
+      color: var(--accent);
+      margin: 0 0 1rem;
+      font-weight: 600;
+    }
+    .slide h2 {
+      font-size: clamp(1.1rem, 2.5vw, 1.5rem);
+      color: var(--green);
+      margin: 0 0 1.5rem;
+      font-weight: 500;
+    }
+    .slide .content {
+      max-width: 720px;
+      text-align: left;
+      line-height: 1.6;
+      color: var(--muted);
+      font-size: clamp(0.9rem, 1.8vw, 1rem);
+    }
+    .slide .content strong { color: var(--text); }
+    .slide .content a { color: var(--accent); }
+    code, .cmd {
+      background: var(--card);
+      padding: 0.15em 0.4em;
+      border-radius: 4px;
+      font-size: 0.92em;
+      color: var(--orange);
+    }
+    .cmd-block {
+      background: var(--card);
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      margin: 0.75rem 0;
+      border-left: 3px solid var(--accent);
+      text-align: left;
+    }
+    .cmd-block code { background: transparent; padding: 0; }
+    .cmd-desc { color: var(--muted); font-size: 0.9em; margin-top: 0.35rem; }
+    ul { margin: 0.5rem 0; padding-left: 1.25rem; }
+    li { margin: 0.35rem 0; }
+    .nav-hint {
+      position: fixed;
+      bottom: 1.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      color: var(--muted);
+      font-size: 0.85rem;
+      z-index: 10;
+    }
+    .nav-dots {
+      position: fixed;
+      bottom: 3rem;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 0.5rem;
+      z-index: 10;
+    }
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--card);
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .dot.active { background: var(--accent); }
+    .btn-pdf {
+      display: inline-block;
+      margin-top: 1.5rem;
+      padding: 0.75rem 1.5rem;
+      background: var(--accent);
+      color: var(--bg);
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 1rem;
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-pdf:hover { filter: brightness(1.15); }
+    .section-label {
+      color: var(--accent);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.5rem;
+    }
+    .git-graph {
+      width: 100%;
+      max-width: 560px;
+      margin: 0 auto;
+    }
+    .git-graph svg {
+      width: 100%;
+      height: auto;
+      overflow: visible;
+    }
+    .git-graph .branch-line { stroke: var(--muted); stroke-width: 2; fill: none; }
+    .git-graph .branch-main { stroke: var(--accent); }
+    .git-graph .branch-feature { stroke: var(--green); }
+    .git-graph .commit-node { fill: var(--card); stroke: var(--accent); stroke-width: 2; }
+    .git-graph .commit-feature { stroke: var(--green); }
+    .git-graph .commit-merge { fill: var(--card); stroke: var(--orange); stroke-width: 2; }
+    .git-graph .label { fill: var(--text); font-size: 11px; font-family: inherit; }
+    .git-graph .label-muted { fill: var(--muted); font-size: 10px; }
+  </style>
+</head>
+<body>
+  <div class="slides">
+    <!-- 1. Portada -->
+    <section class="slide active" data-slide="0">
+      <h1>Git</h1>
+      <p class="content">Control de versiones distribuido</p>
+      <p class="content" style="margin-top: 1rem; font-size: 0.95rem;">Usa <kbd>←</kbd> <kbd>→</kbd> para navegar</p>
+    </section>
+
+    <!-- 2. ¿Qué es Git? -->
+    <section class="slide" data-slide="1">
+      <h2>¿Qué es Git?</h2>
+      <div class="content">
+        <p><strong>Git</strong> es un sistema de control de versiones distribuido: registra los cambios de tus archivos a lo largo del tiempo y te permite volver a versiones anteriores, comparar cambios y trabajar en ramas sin pisar el trabajo de otros.</p>
+        <p>No es lo mismo que <strong>GitHub</strong>: GitHub es un servicio en la nube que aloja repositorios Git. Git es la herramienta que usas en tu máquina; GitHub es un lugar donde subir y compartir esos repositorios.</p>
+      </div>
+    </section>
+
+    <!-- 3. Configuración -->
+    <section class="slide" data-slide="2">
+      <h2>Configuración inicial</h2>
+      <div class="content">
+        <div class="section-label">Identidad y editor</div>
+        <div class="cmd-block"><code>git config --global user.name "Carlos Galindo"</code><div class="cmd-desc">Define el nombre que aparecerá en todos tus commits. Es lo primero que debes configurar; Git lo usa para saber quién hizo cada cambio.</div></div>
+        <div class="cmd-block"><code>git config --global user.email "carlosxgalindo@gmail.com"</code><div class="cmd-desc">Define el email asociado a tus commits. Debe ser el mismo que uses en GitHub u otros servicios si vas a subir el repositorio.</div></div>
+        <div class="cmd-block"><code>git config --global -e</code><div class="cmd-desc">Abre el archivo de configuración global para ver/editar valores.</div></div>
+        <div class="section-label">Alias útiles</div>
+        <div class="cmd-block"><code>git config --global alias.s "status --short"</code><div class="cmd-desc">Atajo: <code>git s</code> para ver estado resumido.</div></div>
+        <div class="cmd-block"><code>git config --global alias.lg "log --graph --abbrev-commit --decorate --format=..."</code><div class="cmd-desc">Atajo: <code>git lg</code> para un log gráfico y legible.</div></div>
+      </div>
+    </section>
+
+    <!-- 4. Iniciar repositorio -->
+    <section class="slide" data-slide="3">
+      <h2>Iniciar repositorio y primer commit</h2>
+      <div class="content">
+        <div class="cmd-block"><code>git init</code><div class="cmd-desc">Convierte la carpeta actual en un repositorio Git creando la carpeta oculta <code>.git</code>. Es el primer comando que usas en un proyecto nuevo; solo se ejecuta una vez por proyecto.</div></div>
+        <div class="cmd-block"><code>git config --global init.defaultBranch main</code><div class="cmd-desc">Hace que la rama por defecto sea <code>main</code> en lugar de <code>master</code>.</div></div>
+        <div class="cmd-block"><code>git add .</code><div class="cmd-desc">Prepara todos los archivos modificados o nuevos para el próximo commit (los pone en “Stage”). Sin este paso, <code>git commit</code> no incluiría los cambios. El punto significa “todo el directorio actual”.</div></div>
+        <div class="cmd-block"><code>git commit -m "Primer Commit"</code><div class="cmd-desc">Guarda en el historial una “foto” de todo lo que está en Stage, con el mensaje que pongas entre comillas. Es la forma de ir dejando versiones guardadas de tu proyecto.</div></div>
+      </div>
+    </section>
+
+    <!-- 5. Ramas básicas -->
+    <section class="slide" data-slide="4">
+      <h2>Ramas básicas y archivos en el tiempo</h2>
+      <div class="content">
+        <div class="cmd-block"><code>git checkout -b branch-nombre</code><div class="cmd-desc">Crea una nueva rama con ese nombre y te cambia a ella de inmediato. Muy usado para empezar una funcionalidad o corrección sin tocar <code>main</code>.</div></div>
+        <div class="cmd-block"><code>git checkout &lt;hash&gt; archivo.ext</code><div class="cmd-desc">Recupera ese archivo tal como estaba en el commit con ese hash (útil para “abrir” el archivo en ese momento).</div></div>
+      </div>
+    </section>
+
+    <!-- 6. Comandos básicos (1) -->
+    <section class="slide" data-slide="5">
+      <h2>Comandos básicos (1)</h2>
+      <div class="content">
+        <div class="cmd-block"><code>git checkout -- .</code><div class="cmd-desc"><strong>Muy importante:</strong> descarta todos los cambios no guardados en el directorio actual y deja los archivos como en el último commit. Útil cuando quieres “tirar” todo lo que modificaste y volver al estado limpio; ten cuidado porque no se puede deshacer.</div></div>
+        <div class="cmd-block"><code>git branch</code><div class="cmd-desc">Lista todas las ramas del repositorio; el asterisco (*) indica en cuál estás trabajando. Útil para no perderte cuando tienes varias ramas.</div></div>
+        <div class="cmd-block"><code>git commit -am "Updating README"</code><div class="cmd-desc">Stage y commit en un comando (solo para archivos ya rastreados).</div></div>
+        <div class="cmd-block"><code>git log</code><div class="cmd-desc">Muestra el historial completo de commits: autor, fecha y mensaje. Es la forma de ver qué se ha guardado y en qué orden. Con <code>q</code> sales de la vista.</div></div>
+      </div>
+    </section>
+
+    <!-- 7. Comandos básicos (2) -->
+    <section class="slide" data-slide="6">
+      <h2>Comandos básicos (2)</h2>
+      <div class="content">
+        <div class="cmd-block"><code>git add folder/.gitkeep</code><div class="cmd-desc">Añade un <code>.gitkeep</code> dentro de una carpeta vacía para que Git la rastree (Git no versiona carpetas vacías).</div></div>
+        <div class="cmd-block"><code>git diff</code><div class="cmd-desc">Muestra línea por línea qué has modificado en los archivos que aún no has puesto en Stage. Sirve para revisar antes de hacer <code>git add</code> y <code>commit</code>.</div></div>
+        <div class="cmd-block"><code>git commit --amend -m "Mensaje modificado"</code><div class="cmd-desc">Actualiza el mensaje del último commit.</div></div>
+        <div class="cmd-block"><code>git reset --soft HEAD^</code><div class="cmd-desc">Deshace el último commit pero deja los cambios en Stage (HEAD^ = anterior; HEAD^2, HEAD^3 para más atrás).</div></div>
+      </div>
+    </section>
+
+    <!-- 8. Comandos básicos (3) -->
+    <section class="slide" data-slide="7">
+      <h2>Comandos básicos (3)</h2>
+      <div class="content">
+        <div class="cmd-block"><code>git reset --mixed bc3721a</code><div class="cmd-desc">Elimina commits hasta ese hash; los cambios quedan en el árbol de trabajo, no en Stage.</div></div>
+        <div class="cmd-block"><code>git reset --hard 22cc4ee</code><div class="cmd-desc">Deja el repositorio exactamente como en ese commit (pierdes cambios posteriores).</div></div>
+        <div class="cmd-block"><code>git reflog</code><div class="cmd-desc">Muestra el historial de referencias; para “viajar” a un punto: <code>git reset --hard &lt;hash&gt;</code>.</div></div>
+        <div class="cmd-block"><code>git mv destroy.md save.md</code> / <code>git rm save.md</code><div class="cmd-desc">Renombrar y eliminar archivos de forma rastreada por Git.</div></div>
+        <div class="cmd-block"><code>.gitignore</code><div class="cmd-desc">Archivo de texto en la raíz del proyecto donde pones nombres de archivos o carpetas que Git debe ignorar (por ejemplo <code>node_modules/</code>, <code>.env</code>, archivos temporales). Evita subir cosas que no deben versionarse.</div></div>
+      </div>
+    </section>
+
+    <!-- 9. Branch (merge) -->
+    <section class="slide" data-slide="8">
+      <h2>Ramas: crear, cambiar y fusionar</h2>
+      <div class="content">
+        <div class="cmd-block"><code>git branch branch-nombre</code><div class="cmd-desc">Crea una nueva rama (no cambia a ella).</div></div>
+        <div class="cmd-block"><code>git checkout branch-nombre</code> / <code>git checkout main</code><div class="cmd-desc">Te mueve a la rama indicada. Todo lo que hagas a partir de entonces (commits, cambios) quedará en esa rama hasta que vuelvas a cambiar.</div></div>
+        <p><strong>Importante:</strong> hay que estar en la rama donde quieres incorporar los cambios (por ejemplo <code>main</code>).</p>
+        <div class="cmd-block"><code>git merge branch-nombre</code><div class="cmd-desc">Integra en la rama actual (por ejemplo <code>main</code>) todos los commits de la otra rama. Primero te pones en <code>main</code> con <code>checkout main</code>, luego ejecutas <code>merge</code> con el nombre de la rama a traer.</div></div>
+        <div class="cmd-block"><code>git branch -d branch-nombre</code><div class="cmd-desc">Elimina una rama ya fusionada (desocupada).</div></div>
+      </div>
+    </section>
+
+    <!-- 10. Tag (reducido) -->
+    <section class="slide" data-slide="9">
+      <h2>Tags (releases)</h2>
+      <div class="content">
+        <p>Los tags marcan puntos concretos (por ejemplo releases). Dos ejemplos:</p>
+        <div class="cmd-block"><code>git tag v1.0.0</code> · <code>git tag</code><div class="cmd-desc">Crear un tag simple en el commit actual y listar todos los tags.</div></div>
+        <div class="cmd-block"><code>git tag -a v1.0.0 -m "ver 1.0.0 ready"</code><div class="cmd-desc">Tag anotado con mensaje (recomendado para releases).</div></div>
+        <div class="cmd-block"><code>git tag -a v0.1.0 &lt;hash&gt; -m "ver alpha"</code><div class="cmd-desc">Tag anotado en un commit pasado; <code>git show v1.0.0</code> muestra la info del tag.</div></div>
+      </div>
+    </section>
+
+    <!-- 11. Stash -->
+    <section class="slide" data-slide="10">
+      <h2>Stash (guardado temporal)</h2>
+      <div class="content">
+        <p>Stash es un espacio temporal para guardar trabajo en progreso (WIP) sin hacer commit.</p>
+        <div class="cmd-block"><code>git stash</code><div class="cmd-desc">Guarda los cambios actuales en un stash.</div></div>
+        <div class="cmd-block"><code>git stash list</code><div class="cmd-desc">Muestra la lista de stashes (comando correcto: <code>git stash list</code>, no gist).</div></div>
+        <div class="cmd-block"><code>git stash pop</code><div class="cmd-desc">Aplica y elimina el último stash.</div></div>
+        <div class="cmd-block"><code>git stash clear</code><div class="cmd-desc">Borra todos los stashes.</div></div>
+      </div>
+    </section>
+
+    <!-- 12. Rebase -->
+    <section class="slide" data-slide="11">
+      <h2>Rebase</h2>
+      <div class="content">
+        <p>Rebase sirve para recolocar los commits de una rama sobre otra (por ejemplo, “mover” tus commits encima de los de <code>main</code>), reescribiendo la línea del tiempo.</p>
+        <div class="cmd-block"><code>git rebase HEAD~2</code><div class="cmd-desc">Reaplica los últimos 2 commits (incorpora cambios de main en tu rama, según contexto).</div></div>
+        <div class="cmd-block"><code>git rebase -i HEAD~4</code><div class="cmd-desc">Modo interactivo: editar, reordenar o unir (squash) los últimos 4 commits. <code>s &lt;hash&gt;</code> une commits.</div></div>
+        <div class="cmd-block"><code>git rebase -i HEAD~3</code> → <code>r &lt;hash&gt;</code><div class="cmd-desc">Para reword (actualizar mensajes de commit).</div></div>
+        <div class="cmd-block"><code>git rebase --continue</code><div class="cmd-desc">Continúa el rebase después de resolver conflictos o ediciones.</div></div>
+        <p>El número en <code>HEAD~X</code> indica cuántos commits participan en el rebase.</p>
+      </div>
+    </section>
+
+    <!-- 13. Árbol y ramas (gráfico) -->
+    <section class="slide" data-slide="12">
+      <h2>Árbol y ramas en tu computadora</h2>
+      <div class="content git-graph">
+        <p style="text-align: center; margin-bottom: 1rem;">Repositorio local (<code>.git</code>): ramas, commits y merge.</p>
+        <svg viewBox="0 0 420 200" xmlns="http://www.w3.org/2000/svg">
+          <!-- Línea main (horizontal) -->
+          <path class="branch-line branch-main" d="M 40 100 L 120 100 L 200 100 L 280 100 L 360 100 L 380 100"/>
+          <!-- Commits en main -->
+          <circle class="commit-node" cx="60" cy="100" r="12"/>
+          <circle class="commit-node" cx="120" cy="100" r="12"/>
+          <circle class="commit-node" cx="200" cy="100" r="12"/>
+          <circle class="commit-node" cx="280" cy="100" r="12"/>
+          <circle class="commit-node" cx="360" cy="100" r="12"/>
+          <!-- Rama feature (nace en 2º commit, 2 commits, vuelve a main) -->
+          <path class="branch-line branch-feature" d="M 120 100 L 120 60 L 200 60 L 280 60 L 280 100"/>
+          <circle class="commit-node commit-feature" cx="160" cy="60" r="12"/>
+          <circle class="commit-node commit-feature" cx="240" cy="60" r="12"/>
+          <!-- Merge commit (diamante) -->
+          <polygon class="commit-merge" points="280,100 300,92 320,100 300,108"/>
+          <!-- Etiquetas ramas -->
+          <text class="label" x="385" y="96">main</text>
+          <text class="label" x="245" y="52" style="fill: var(--green);">feature</text>
+          <!-- Etiquetas commits -->
+          <text class="label-muted" x="56" y="128">C1</text>
+          <text class="label-muted" x="116" y="128">C2</text>
+          <text class="label-muted" x="156" y="48">C3</text>
+          <text class="label-muted" x="236" y="48">C4</text>
+          <text class="label-muted" x="196" y="128">C5</text>
+          <text class="label-muted" x="276" y="128">C6</text>
+          <text class="label-muted" x="318" y="118">merge</text>
+          <!-- HEAD -->
+          <text class="label" x="368" y="78" style="font-size: 9px; fill: var(--orange);">HEAD → main</text>
+        </svg>
+        <p style="text-align: center; margin-top: 0.75rem; font-size: 0.85rem;">C1→C2: <code>main</code> · C3→C4: <code>feature</code> · merge une <code>feature</code> en <code>main</code>.</p>
+      </div>
+    </section>
+
+    <!-- 14. Cheatsheet + PDF -->
+    <section class="slide" data-slide="13">
+      <h2>Cheatsheet y PDF</h2>
+      <div class="content">
+        <p>Aquí tienes un resumen agrupado de los comandos vistos. Usa el botón para descargar un PDF con el cheatsheet.</p>
+        <button type="button" class="btn-pdf" id="btn-pdf">Descargar cheatsheet en PDF</button>
+      </div>
+    </section>
+  </div>
+
+  <div class="nav-hint"><kbd>←</kbd> Anterior · Siguiente <kbd>→</kbd></div>
+  <div class="nav-dots" id="nav-dots"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script>
+    (function () {
+      const slides = document.querySelectorAll('.slide');
+      const total = slides.length;
+      let current = 0;
+
+      function go(n) {
+        slides[current].classList.remove('active');
+        current = (n + total) % total;
+        slides[current].classList.add('active');
+        document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === current));
+      }
+
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'ArrowRight') go(current + 1);
+        if (e.key === 'ArrowLeft') go(current - 1);
+      });
+
+      const dotsEl = document.getElementById('nav-dots');
+      for (let i = 0; i < total; i++) {
+        const d = document.createElement('span');
+        d.className = 'dot' + (i === 0 ? ' active' : '');
+        d.setAttribute('aria-label', 'Ir a diapositiva ' + (i + 1));
+        d.addEventListener('click', () => go(i));
+        dotsEl.appendChild(d);
+      }
+
+      document.getElementById('btn-pdf').addEventListener('click', function () {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+        const margin = 14;
+        let y = 20;
+        const lineH = 6;
+        const titleH = 8;
+
+        function title(text) {
+          doc.setFontSize(12);
+          doc.setFont(undefined, 'bold');
+          doc.text(text, margin, y);
+          y += titleH;
+        }
+        function line(cmd, desc) {
+          doc.setFontSize(9);
+          doc.setFont(undefined, 'normal');
+          doc.setTextColor(60, 60, 60);
+          doc.text(cmd, margin, y);
+          y += lineH * 0.7;
+          doc.setFontSize(8);
+          doc.text(desc, margin + 2, y);
+          y += lineH;
+        }
+        function boldLine(cmd, desc) {
+          doc.setFontSize(9);
+          doc.setFont(undefined, 'bold');
+          doc.setTextColor(40, 40, 40);
+          doc.text(cmd, margin, y);
+          y += lineH * 0.7;
+          doc.setFontSize(8);
+          doc.setFont(undefined, 'normal');
+          doc.setTextColor(80, 80, 80);
+          doc.text(desc, margin + 2, y);
+          y += lineH;
+        }
+
+        doc.setFontSize(16);
+        doc.setFont(undefined, 'bold');
+        doc.text('Git — Cheatsheet', margin, y);
+        y += 12;
+
+        title('Configuración');
+        boldLine('git config --global user.name "Nombre"', 'Define el nombre que aparecerá en todos tus commits. Lo primero que debes configurar.');
+        boldLine('git config --global user.email "email@ejemplo.com"', 'Define el email asociado a tus commits. Úsalo igual que en GitHub si vas a subir el repo.');
+        line('git config --global -e', 'Editar config global');
+        boldLine('git config --global alias.s "status --short"', 'Atajo: git s para ver estado resumido (archivos modificados, staged, etc.).');
+        line('git config --global alias.lg "log --graph --abbrev-commit --decorate --format=..."', 'Alias: log gráfico');
+        y += 4;
+
+        title('Inicio y commits');
+        boldLine('git init', 'Convierte la carpeta actual en un repositorio Git (crea .git). Solo una vez por proyecto.');
+        line('git config --global init.defaultBranch main', 'Rama por defecto main');
+        boldLine('git add .', 'Prepara todos los archivos modificados o nuevos para el próximo commit (Stage). El punto = todo el directorio.');
+        boldLine('git commit -m "Mensaje"', 'Guarda una "foto" de lo que está en Stage con el mensaje indicado. Forma de ir dejando versiones guardadas.');
+        line('git commit -am "Mensaje"', 'Add + commit en un comando (solo archivos ya rastreados)');
+        y += 4;
+
+        title('Ramas');
+        boldLine('git checkout -b nombre-rama', 'Crea una nueva rama y te cambia a ella. Muy usado para empezar una funcionalidad sin tocar main.');
+        line('git branch nombre-rama', 'Solo crear rama');
+        boldLine('git checkout nombre-rama', 'Te mueve a la rama indicada. Lo que hagas después queda en esa rama.');
+        boldLine('git branch', 'Lista todas las ramas; el asterisco indica en cuál estás.');
+        boldLine('git merge nombre-rama', 'Integra en la rama actual los commits de la otra. Primero checkout main, luego merge nombre-rama.');
+        line('git branch -d nombre-rama', 'Eliminar rama fusionada');
+        y += 4;
+
+        title('Historial y deshacer');
+        boldLine('git log', 'Muestra el historial de commits (autor, fecha, mensaje). Con q sales.');
+        line('git reflog', 'Historial de referencias');
+        boldLine('git checkout -- .', 'Muy importante: descarta todos los cambios no guardados y deja los archivos como en el último commit. No se puede deshacer.');
+        boldLine('git diff', 'Muestra línea por línea qué has modificado en archivos que aún no están en Stage.');
+        line('git commit --amend -m "Nuevo mensaje"', 'Cambiar último mensaje');
+        line('git reset --soft HEAD^', 'Deshacer último commit, mantener cambios en Stage');
+        line('git reset --mixed <hash>', 'Reset hasta hash, cambios en trabajo');
+        line('git reset --hard <hash>', 'Dejar repo como en ese commit');
+        y += 4;
+
+        title('Archivos');
+        line('git checkout <hash> archivo.ext', 'Recuperar archivo en ese commit');
+        line('git mv viejo nuevo', 'Renombrar (rastreado)');
+        line('git rm archivo', 'Eliminar (rastreado)');
+        boldLine('.gitignore', 'Archivo en la raíz donde listas archivos/carpetas que Git debe ignorar (ej. node_modules/, .env).');
+        line('git add carpeta/.gitkeep', 'Rastrear carpeta vacía');
+        y += 4;
+
+        title('Tags');
+        line('git tag nombre', 'Tag en commit actual');
+        line('git tag', 'Listar tags');
+        line('git tag -d nombre', 'Eliminar tag');
+        line('git tag -a v1.0.0 -m "mensaje"', 'Tag anotado');
+        line('git tag -a v0.1.0 <hash> -m "mensaje"', 'Tag en commit pasado');
+        line('git show v1.0.0', 'Ver info del tag');
+        y += 4;
+
+        title('Stash');
+        line('git stash', 'Guardar cambios temporalmente');
+        line('git stash list', 'Listar stashes');
+        line('git stash pop', 'Aplicar y quitar último stash');
+        line('git stash apply stash@{1}', 'Aplicar stash sin borrarlo');
+        line('git stash save "Mensaje"', 'Stash con mensaje');
+        line('git stash clear', 'Borrar todos los stashes');
+        y += 4;
+
+        title('Rebase');
+        line('git rebase HEAD~N', 'Rebasar últimos N commits');
+        line('git rebase -i HEAD~N', 'Rebase interactivo (squash, reword)');
+        line('git rebase --continue', 'Continuar tras edición/conflictos');
+
+        doc.save('git-cheatsheet.pdf');
+      });
+    })();
+  </script>
+</body>
+</html>
