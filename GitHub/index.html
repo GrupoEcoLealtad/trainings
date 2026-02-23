@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GitHub — Introducción y comandos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --border: #30363d;
+      --text: #e6edf3;
+      --text-muted: #8b949e;
+      --accent: #58a6ff;
+      --accent-soft: rgba(88, 166, 255, 0.15);
+      --success: #3fb950;
+      --success-soft: rgba(63, 185, 80, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      overflow: hidden;
+      height: 100%;
+    }
+
+    body {
+      font-family: 'DM Sans', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+      margin: 0;
+    }
+
+    .slides-container {
+      position: relative;
+      height: 100vh;
+    }
+
+    /* Slides: vertical tipo landing, una “pantalla” por sección */
+    section.slide {
+      display: none;
+      min-height: 100vh;
+      padding: 3rem 2rem 5rem;
+      max-width: 900px;
+      margin: 0 auto;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    section.slide.active {
+      display: flex;
+    }
+
+    section.slide h1 {
+      font-size: clamp(2rem, 5vw, 3rem);
+      font-weight: 700;
+      margin-bottom: 1rem;
+      letter-spacing: -0.02em;
+    }
+
+    section.slide h2 {
+      font-size: 1.35rem;
+      font-weight: 600;
+      color: var(--accent);
+      margin-bottom: 1.25rem;
+      margin-top: 2rem;
+    }
+
+    section.slide h2:first-child {
+      margin-top: 0;
+    }
+
+    section.slide p {
+      color: var(--text-muted);
+      margin-bottom: 1rem;
+      font-size: 1.05rem;
+    }
+
+    .intro p {
+      font-size: 1.2rem;
+      color: var(--text);
+    }
+
+    code, .cmd {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.9em;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.2em 0.5em;
+      color: var(--accent);
+    }
+
+    .cmd-block {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      margin: 1rem 0;
+      overflow-x: auto;
+    }
+
+    .cmd-block code {
+      background: none;
+      border: none;
+      padding: 0;
+      color: var(--text);
+      font-size: 0.95rem;
+    }
+
+    .cmd-block .comment {
+      color: var(--text-muted);
+      font-style: italic;
+    }
+
+    ul {
+      list-style: none;
+      margin: 0.5rem 0 1rem;
+    }
+
+    ul li {
+      position: relative;
+      padding-left: 1.5rem;
+      margin-bottom: 0.6rem;
+      color: var(--text-muted);
+    }
+
+    ul li::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0.5rem;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+
+    .highlight-box {
+      background: var(--success-soft);
+      border: 1px solid rgba(63, 185, 80, 0.3);
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      margin: 1rem 0;
+      color: var(--text);
+    }
+
+    .highlight-box strong {
+      color: var(--success);
+    }
+
+    /* Última slide: CTA descarga */
+    section.slide.final {
+      text-align: center;
+      align-items: center;
+    }
+
+    section.slide.final p {
+      max-width: 480px;
+      margin-bottom: 2rem;
+    }
+
+    .btn-download {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--accent);
+      color: var(--bg) !important;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1.1rem;
+      padding: 0.9rem 1.75rem;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      transition: filter 0.2s, transform 0.15s;
+      box-shadow: 0 4px 14px rgba(88, 166, 255, 0.35);
+    }
+
+    .btn-download:hover {
+      filter: brightness(1.1);
+      transform: translateY(-2px);
+    }
+
+    .btn-download svg {
+      width: 1.25rem;
+      height: 1.25rem;
+    }
+
+    /* Navegación anterior/siguiente */
+    .slide-nav {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      z-index: 90;
+      background: rgba(22, 27, 34, 0.95);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 0.5rem 0.75rem;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    }
+
+    .slide-nav button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 44px;
+      height: 44px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1.25rem;
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+    }
+
+    .slide-nav button:hover:not(:disabled) {
+      background: var(--accent-soft);
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .slide-nav button:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .slide-nav .slide-indicator {
+      color: var(--text-muted);
+      font-size: 0.875rem;
+      min-width: 4rem;
+      text-align: center;
+    }
+
+    footer {
+      text-align: center;
+      padding: 2rem;
+      color: var(--text-muted);
+      font-size: 0.875rem;
+    }
+  </style>
+</head>
+<body>
+  <main class="slides-container">
+  <section id="intro" class="slide intro active" data-slide-index="0">
+    <h1>GitHub — Introducción general</h1>
+    <p>Plataforma de desarrollo colaborativo basada en Git. Permite alojar repositorios, revisar código, gestionar issues y releases, y trabajar en equipo con forks y pull requests.</p>
+    <p>En esta presentación repasamos comandos básicos y conceptos útiles para el día a día.</p>
+  </section>
+
+  <section id="comandos-push" class="slide" data-slide-index="1">
+    <h2>Comandos básicos — Enviar cambios</h2>
+    <p><strong>Enviar cambios al remoto</strong></p>
+    <div class="cmd-block">
+      <code>git push -u origin main</code>
+      <span class="comment"> // Primera vez: asociar rama local con remota</span>
+    </div>
+    <div class="cmd-block">
+      <code>git push</code>
+      <span class="comment"> // Enviar cambios (después de la primera vez)</span>
+    </div>
+    <div class="cmd-block">
+      <code>git push --tags</code>
+      <span class="comment"> // Enviar tags al remoto</span>
+    </div>
+    <div class="highlight-box">
+      <strong>Recomendación:</strong> asociar tags con releases en GitHub para documentar versiones.
+    </div>
+  </section>
+
+  <section id="comandos-pull" class="slide" data-slide-index="2">
+    <h2>Comandos básicos — Traer y clonar</h2>
+    <p><strong>Traer actualizaciones y clonar</strong></p>
+    <div class="cmd-block">
+      <code>git pull</code>
+      <span class="comment"> // Traerse las últimas actualizaciones del remoto</span>
+    </div>
+    <div class="cmd-block">
+      <code>git clone https://github.com/X.git</code>
+      <span class="comment"> // Clonar un repositorio</span>
+    </div>
+    <div class="cmd-block">
+      <code>git config pull.rebase true</code>
+      <span class="comment"> // Configurar localmente el rebase al hacer pull</span>
+    </div>
+  </section>
+
+  <section id="conceptos-fork-pr" class="slide" data-slide-index="3">
+    <h2>Conceptos de GitHub</h2>
+    <p><strong>Fork</strong> — Copia de un repositorio público en tu cuenta. Te permite proponer cambios al proyecto original sin tener acceso de escritura directo.</p>
+    <p><strong>Pull request (PR)</strong> — Solicitud para enviar tus contribuciones (cambios de tu fork o rama) al repositorio central. El mantenedor puede revisar y fusionar.</p>
+  </section>
+
+  <section id="conceptos-fork-gist" class="slide" data-slide-index="4">
+    <h2>Conceptos de GitHub (cont.)</h2>
+    <p><strong>Actualizar fork</strong> — Sincronizar tu fork con el repositorio central: traerte los últimos cambios del proyecto original a tu copia (por ejemplo con <code>git pull upstream main</code> si tienes el remoto <code>upstream</code> configurado).</p>
+    <p><strong>Gist</strong> — Minirepositorio público para compartir fragmentos de código, notas o archivos pequeños sin crear un repo completo.</p>
+  </section>
+
+  <section id="gist" class="slide" data-slide-index="5">
+    <h2>Gist y Visual Studio Code</h2>
+    <p>Para usar Gists desde VSC necesitas un <strong>GitHub Personal Access Token (PAT)</strong> con permiso <code>gist</code>.</p>
+    <ul>
+      <li><strong>Seleccionar perfil:</strong> <code>Cmd+Shift+P</code> → <em>GIST: Select Profile</em> → pegar tu GitHub PAT.</li>
+      <li><strong>Abrir tus Gists:</strong> <code>Cmd+Shift+P</code> → <em>GIST: Open Gist</em> → se muestra tu lista de Gists.</li>
+    </ul>
+    <p>Así puedes crear, editar y abrir Gists directamente desde el editor.</p>
+  </section>
+
+  <section id="descarga" class="slide final" data-slide-index="6">
+    <h1>Cheatsheet</h1>
+    <p>Descarga una hoja de referencia con los comandos y conceptos vistos para tenerlos a mano.</p>
+    <button type="button" id="btn-download-pdf" class="btn-download">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+      </svg>
+      Descargar cheatsheet (PDF)
+    </button>
+  </section>
+  </main>
+
+  <div class="slide-nav">
+    <button type="button" id="btn-prev" title="Anterior" aria-label="Slide anterior">←</button>
+    <span class="slide-indicator" id="slide-indicator">1 / 5</span>
+    <button type="button" id="btn-next" title="Siguiente" aria-label="Slide siguiente">→</button>
+  </div>
+
+  <footer>
+    Presentación sobre GitHub — Comandos básicos e información extra
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script>
+    (function () {
+      var slides = document.querySelectorAll('section.slide');
+      var total = slides.length;
+      var current = 0;
+
+      function updateUI() {
+        document.getElementById('slide-indicator').textContent = (current + 1) + ' / ' + total;
+        document.getElementById('btn-prev').disabled = current === 0;
+        document.getElementById('btn-next').disabled = current === total - 1;
+      }
+
+      function goToSlide(index) {
+        if (index < 0 || index >= total) return;
+        current = index;
+        for (var i = 0; i < slides.length; i++) {
+          slides[i].classList.toggle('active', i === current);
+        }
+        updateUI();
+      }
+
+      document.getElementById('btn-prev').addEventListener('click', function () {
+        goToSlide(current - 1);
+      });
+      document.getElementById('btn-next').addEventListener('click', function () {
+        goToSlide(current + 1);
+      });
+
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'ArrowLeft') {
+          e.preventDefault();
+          goToSlide(current - 1);
+        } else if (e.key === 'ArrowRight') {
+          e.preventDefault();
+          goToSlide(current + 1);
+        }
+      });
+
+      goToSlide(0);
+
+      // Descargar cheatsheet en PDF
+      document.getElementById('btn-download-pdf').addEventListener('click', function () {
+        var { jsPDF } = window.jspdf;
+        var doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+        var margin = 20;
+        var y = 20;
+        var lineHeight = 6;
+        var pageHeight = doc.internal.pageSize.height;
+
+        function addText(str, opts) {
+          opts = opts || {};
+          if (opts.fontSize) doc.setFontSize(opts.fontSize);
+          if (opts.bold) doc.setFont(undefined, 'bold');
+          var lines = doc.splitTextToSize(str, 170);
+          if (y + lines.length * lineHeight > pageHeight - 20) {
+            doc.addPage();
+            y = 20;
+          }
+          doc.text(lines, margin, y);
+          y += lines.length * lineHeight + (opts.spaceAfter || 2);
+          doc.setFont(undefined, 'normal');
+          doc.setFontSize(11);
+        }
+
+        doc.setFontSize(18);
+        doc.setFont(undefined, 'bold');
+        doc.text('GITHUB — CHEATSHEET', margin, y);
+        y += 12;
+        doc.setFont(undefined, 'normal');
+        doc.setFontSize(11);
+
+        doc.setFont(undefined, 'bold');
+        addText('COMANDOS BÁSICOS', { spaceAfter: 4 });
+        doc.setFont(undefined, 'normal');
+        addText('Enviar cambios:');
+        addText('  git push -u origin main   → Primera vez: asociar rama local con remota');
+        addText('  git push                   → Enviar cambios');
+        addText('  git push --tags            → Enviar tags al remoto');
+        addText('Recomendación: asociar tags con releases en GitHub.', { spaceAfter: 4 });
+        addText('Traer actualizaciones y clonar:');
+        addText('  git pull                    → Traer últimas actualizaciones');
+        addText('  git clone https://github.com/X.git   → Clonar repositorio');
+        addText('  git config pull.rebase true → Configurar rebase al hacer pull (local)', { spaceAfter: 6 });
+
+        doc.setFont(undefined, 'bold');
+        addText('CONCEPTOS GITHUB', { spaceAfter: 4 });
+        doc.setFont(undefined, 'normal');
+        addText('Fork: Copia de un repositorio público en tu cuenta. Permite proponer cambios al proyecto original sin acceso de escritura directo.');
+        addText('Pull request (PR): Solicitud para enviar contribuciones al repositorio central. El mantenedor revisa y puede fusionar.');
+        addText('Actualizar fork: Sincronizar tu fork con el repositorio central (ej. git pull upstream main).');
+        addText('Gist: Minirepositorio público para fragmentos de código, notas o archivos pequeños.', { spaceAfter: 6 });
+
+        doc.setFont(undefined, 'bold');
+        addText('GIST EN VISUAL STUDIO CODE', { spaceAfter: 4 });
+        doc.setFont(undefined, 'normal');
+        addText('  Cmd+Shift+P → GIST: Select Profile → pegar GitHub PAT');
+        addText('  Cmd+Shift+P → GIST: Open Gist → ver y abrir tu lista de Gists');
+
+        doc.save('GitHub-Cheatsheet.pdf');
+      });
+    })();
+  </script>
+</body>
+</html>

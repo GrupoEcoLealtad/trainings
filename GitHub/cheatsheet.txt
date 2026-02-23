@@ -1,0 +1,49 @@
+================================================================================
+  GITHUB — CHEATSHEET
+================================================================================
+
+COMANDOS BÁSICOS
+----------------
+
+  Enviar cambios
+  --------------
+  git push -u origin main     → Primera vez: asociar rama local con remota
+  git push                    → Enviar cambios (tras la primera vez)
+  git push --tags             → Enviar tags al remoto
+
+  Nota: Es recomendable asociar tags con releases en GitHub.
+
+  Traer actualizaciones y clonar
+  ------------------------------
+  git pull                    → Traer últimas actualizaciones del remoto
+  git clone https://github.com/X.git   → Clonar un repositorio
+  git config pull.rebase true → Configurar rebase al hacer pull (local)
+
+
+CONCEPTOS GITHUB
+---------------
+
+  Fork
+  Copia de un repositorio público en tu cuenta. Permite proponer cambios
+  al proyecto original sin acceso de escritura directo.
+
+  Pull request (PR)
+  Solicitud para enviar contribuciones (de tu fork o rama) al repositorio
+  central. El mantenedor revisa y puede fusionar.
+
+  Actualizar fork
+  Sincronizar tu fork con el repositorio central: traer los últimos cambios
+  del proyecto original a tu copia (ej. git pull upstream main).
+
+  Gist
+  Minirepositorio público para fragmentos de código, notas o archivos
+  pequeños sin crear un repo completo.
+
+
+GIST EN VISUAL STUDIO CODE
+--------------------------
+
+  • Cmd+Shift+P → GIST: Select Profile → pegar GitHub PAT (Personal Access Token)
+  • Cmd+Shift+P → GIST: Open Gist → ver y abrir tu lista de Gists
+
+================================================================================
